@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Http\Middleware;
+// namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+// use Closure;
+// use Illuminate\Http\Request;
+// use Symfony\Component\HttpFoundation\Response;
 
-class IsPeminjam
-{
+// class IsPeminjam
+// {
     
-    public function handle(Request $request, Closure $next): Response
-    {
-        if ($request->user() && $request->user()->role === 'peminjam') {
-            return $next($request);
-        }
-        return response()->json(['message' => 'Akses ditolak. Anda Bukan Peminjam.'], 403);
-    }
-}
+//     public function handle(Request $request, Closure $next): Response
+//     {
+//         if ($request->user() && $request->user()->role === 'peminjam') {
+//             return $next($request);
+//         }
+//         return response()->json(['message' => 'Akses ditolak. Anda Bukan Peminjam.'], 403);
+//     }
+// }

@@ -51,10 +51,10 @@
                 </tr>
             </thead>
             <tbody class="text-gray-700 text-sm">
-                @forelse($kategori as $index => $kategori)
+                @forelse($kategoris as $index => $kategori)
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="py-3 px-4 border border-b  text-center">{{ $kategori->firstItem() + $index }}</td>
-                    <td class="py-3 px-4 border border-b  text-center font-medium text-gray-900">{{ $kategori->nama_kategori }}</td>
+                    <td class="py-3 px-4 border border-b  ">{{ $kategoris->firstItem() + $index }}</td>
+                    <td class="py-3 px-4 border border-b  font-medium text-gray-900">{{ $kategori->nama_kategori }}</td>
                     <td class="py-3 px-4 border border-b  ">
                         <div class="flex items-center space-x-2">
                             <a href="{{ route('admin.kategori.edit', $kategori->id) }}"
@@ -84,7 +84,7 @@
 
     {{-- Pagination --}}
     <div class="p-4 border-t border-gray-200 bg-gray-50">
-        {{ $kategori->links() }}
+        {{ $kategoris->links() }}
     </div>
 @endsection
 

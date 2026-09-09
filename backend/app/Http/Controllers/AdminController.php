@@ -410,4 +410,26 @@ class AdminController extends Controller
         
         }
 
+    // Pemantauan Pengembalian (khusus admin, read-only)
+    public function indexPengembalian(Request $request)
+    {
+        $search = $request->input('search');
+
+        $dipinjam = Peminjaman::with(['user', 'detailPinjam.alat'])
+            ->where('status', 'dipinjam')
+            ->when($search, function ($query, $search) {
+                return $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('tgl_kembali_plan')
+            ->get();
+
+        $riwayat = \App\Models\Pengembalian::with(['peminjaman.user', 'peminjaman.detailPinjam.alat', 'petugas'])
+            ->latest('tgl_kembali')
+            ->take(20)
+            ->get();
+
+        return view('admin.pengembalian.index', compact('dipinjam', 'riwayat', 'search'));
+    }
 }

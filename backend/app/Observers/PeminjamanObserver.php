@@ -20,7 +20,13 @@ class PeminjamanObserver
     public function created(Peminjaman $peminjaman): void
     {
         $namaPeminjam = $peminjaman->user?->name ?? 'User';
-        $this->catatLog("Peminjam ({$namaPeminjam}) membuat permohonan peminjaman baru (ID: #{$peminjaman->id})");
+
+        if (Auth::check() && Auth::id() == $peminjaman->user_id) {
+            $this->catatLog("Peminjam ({$namaPeminjam}) mengajukan permohonan peminjaman baru (ID: #{$peminjaman->id})");
+        } else {
+            $namaPetugas = Auth::user()?->name ?? 'Petugas';
+            $this->catatLog("{$namaPetugas} mencatat permohonan peminjaman baru atas nama {$namaPeminjam} (ID: #{$peminjaman->id})");
+        }
     }
 
     

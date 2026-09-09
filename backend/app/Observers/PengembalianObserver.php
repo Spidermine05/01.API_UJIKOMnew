@@ -26,7 +26,7 @@ class PengembalianObserver
     public function updated(Pengembalian $pengembalian): void
     {
         $perubahan = array_diff(array_keys($pengembalian->getChanges()),
-        ['update_at']);
+        ['updated_at']);
         
             if (!empty($perubahan)) {
                 $kolom = implode(', ', $perubahan);

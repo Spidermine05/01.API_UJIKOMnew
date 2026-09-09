@@ -49,7 +49,7 @@ class PeminjamController extends Controller
         }
     }
     public function riwayatPeminjaman(){
-        $peminjamans = Peminjaman::with('detailPinjams.alat')
+        $peminjamans = Peminjaman::with(['detailPinjam.alat', 'pengembalian'])
             ->where('user_id', auth()->id())
             ->latest()
             ->get();

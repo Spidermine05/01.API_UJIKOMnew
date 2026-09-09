@@ -2,6 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Alat;
+use App\Models\Peminjaman;
+use App\Models\Pengembalian;
+use App\Models\User;
+use App\Observers\AlatObserver;
+use App\Observers\PeminjamanObserver;
+use App\Observers\PengembalianObserver;
+use App\Observers\UserObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Daftarkan observer supaya Log Aktivitas di dashboard admin selalu tercatat
+        Alat::observe(AlatObserver::class);
+        Peminjaman::observe(PeminjamanObserver::class);
+        Pengembalian::observe(PengembalianObserver::class);
+        User::observe(UserObserver::class);
     }
 }

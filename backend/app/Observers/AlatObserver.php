@@ -27,11 +27,11 @@ class AlatObserver
     public function updated(Alat $alat): void
     {
         $perubahanArray = array_diff(array_keys($alat->getChanges()),
-        ['update_at']);
+        ['updated_at']);
 
         if (!empty($perubahanArray)) {
             $perubahan = implode(', ', $perubahanArray);
-            $this->catatLog("Memeperbarui data alat '{$alat->nama_alat}' (Kolom yang diubah: {$perubahan})");
+            $this->catatLog("Memperbarui data alat '{$alat->nama_alat}' (Kolom yang diubah: {$perubahan})");
         }
     }
 

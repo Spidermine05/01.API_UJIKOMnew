@@ -2,18 +2,18 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+// use Closure;
+// use Illuminate\Http\Request;
+// use Symfony\Component\HttpFoundation\Response;
 
-class IsPetugas
-{
+// class IsPetugas
+// {
     
-    public function handle(Request $request, Closure $next): Response
-    {
-      if ($request->user() && $request->user()->role === 'petugas') {
-            return $next($request);
-        }
-        return response()->json(['message' => 'Akses ditolak. Anda Bukan Petugas.'], 403);
-    }
-}
+//     public function handle(Request $request, Closure $next): Response
+//     {
+//       if ($request->user() && $request->user()->role === 'petugas') {
+//             return $next($request);
+//         }
+//         return response()->json(['message' => 'Akses ditolak. Anda Bukan Petugas.'], 403);
+//     }
+// }

@@ -52,7 +52,7 @@ class PetugasController extends Controller
             ->get();
 
         $riwayat = Pengembalian::with(['peminjaman.user', 'peminjaman.detailPinjam.alat', 'petugas'])
-            ->latest('tgl_kembali')
+            ->latest('created_at')
             ->take(20)
             ->get();
 
