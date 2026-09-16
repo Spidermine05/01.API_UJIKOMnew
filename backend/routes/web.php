@@ -6,10 +6,13 @@ use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\PeminjamController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\LaporanController;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
+// Dompdf
+Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf']);
 
 // admin
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
