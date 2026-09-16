@@ -3,7 +3,7 @@
 @section('title','Edit User - Panel Admin')
 @section('header-title','Edit Data Pengguna')
 
-@section
+@section('content')
 <div class="max-w-xl bg-white rounded-lg shadow-sm border border-gray-200 p-6">
     <form action="{{ route('admin.user.update', $user->id) }}" method="POST">
         @csrf

@@ -11,10 +11,19 @@ use Illuminate\Support\Facades\DB;
 class PetugasController extends Controller
 {
 // Menampilkan daftar pengajuan peminjaman dari siswa/pengembalian
-    public function indexPeminjaman() {
-        $peminjamans = Peminjaman::with(['user','detailPinjam.alat'])->latest()->get();
-        return view('petugas.peminjaman.index', compact('peminjamans'));
+    public function indexPeminjaman(Request $request) {
+        $search = $request->input('search');
 
+        $peminjamans = Peminjaman::with(['user','detailPinjam.alat'])
+            ->when($search, function ($query, $search) {
+                return $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('petugas.peminjaman.index', compact('peminjamans', 'search'));
     }
     // Menyetujui peminjaman ( Mengubah status & mengurangi stok alat)
     public function setujuPeminjaman($id) {
@@ -48,6 +57,9 @@ class PetugasController extends Controller
                     $q->where('name', 'like', "%{$search}%");
                 });
             })
+            // Yang sudah diajukan pengembaliannya oleh peminjam ditampilkan paling atas
+            ->orderByRaw('tgl_pengajuan_kembali IS NULL')
+            ->orderByDesc('tgl_pengajuan_kembali')
             ->orderBy('tgl_kembali_plan')
             ->get();
 
@@ -93,23 +105,6 @@ class PetugasController extends Controller
             return redirect()->back()->with('error','Terjadi kesalahan: '. $e->getMessage());
         }
     }
-    // menampilkan pengajuan dari peminjam
-    public function indexPeminjam(Request $request)
-    {
-        $search = $request->input('search');
-
-        $peminjam = Peminjaman::with(['user','detailPinjam.alat'])
-            ->where('status','diajukan')
-            ->when($search, function ($query, $search) {
-                return $query->whereHas('user', function ($q) use ($search){
-                    $q->where('name','like',"%{$search}%");
-                });
-            })
-            ->latest()
-            ->get();
-
-        return view('petugas.peminjaman.index', compact('peminjaman', 'search'));
-    }
     // tolak peminjaman
     public function tolakPeminjaman($id)
     {
@@ -127,5 +122,28 @@ class PetugasController extends Controller
     return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
  
         }
+    }
+
+    // Laporan Peminjaman (bisa difilter tanggal & status, dan dicetak)
+    public function indexLaporan(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $status    = $request->input('status');
+
+        $laporan = Peminjaman::with(['user', 'detailPinjam.alat', 'pengembalian'])
+            ->when($startDate, function ($query, $startDate) {
+                return $query->whereDate('tgl_pinjam', '>=', $startDate);
+            })
+            ->when($endDate, function ($query, $endDate) {
+                return $query->whereDate('tgl_pinjam', '<=', $endDate);
+            })
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
+            })
+            ->latest('tgl_pinjam')
+            ->get();
+
+        return view('petugas.laporan.index', compact('laporan', 'startDate', 'endDate', 'status'));
     }
 }

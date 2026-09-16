@@ -13,6 +13,23 @@
     ];
 
     $statusTersedia = $peminjamans->pluck('status')->unique()->values();
+
+    // Warna ikon per kategori, sama seperti di halaman Katalog biar senada
+    $paletteWarna = [
+        ['bg' => 'bg-blue-100', 'text' => 'text-blue-700'],
+        ['bg' => 'bg-purple-100', 'text' => 'text-purple-700'],
+        ['bg' => 'bg-pink-100', 'text' => 'text-pink-700'],
+        ['bg' => 'bg-cyan-100', 'text' => 'text-cyan-700'],
+        ['bg' => 'bg-orange-100', 'text' => 'text-orange-700'],
+        ['bg' => 'bg-teal-100', 'text' => 'text-teal-700'],
+    ];
+    $semuaKategori = $peminjamans->flatMap(function ($p) {
+        return $p->detailPinjam->pluck('alat.kategori.nama_kategori');
+    })->filter()->unique()->sort()->values();
+    $warnaKategori = [];
+    foreach ($semuaKategori as $i => $nama) {
+        $warnaKategori[$nama] = $paletteWarna[$i % count($paletteWarna)];
+    }
 @endphp
 
 @section('content')
@@ -97,17 +114,26 @@
                             @endforeach
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Alat yang Dipinjam</p>
-                                <ul class="text-sm text-gray-700 space-y-1">
+                                <ul class="space-y-2">
                                     @forelse($p->detailPinjam as $detail)
-                                        <li class="flex justify-between border-b border-dashed border-gray-100 py-1">
-                                            <span>{{ $detail->alat->nama_alat ?? 'Alat sudah dihapus' }}</span>
-                                            <span class="text-gray-400">x{{ $detail->jumlah }}</span>
+                                        @php
+                                            $namaKategori = $detail->alat->kategori->nama_kategori ?? '';
+                                            $warna = $warnaKategori[$namaKategori] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-500'];
+                                        @endphp
+                                        <li class="flex items-center gap-3">
+                                            <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $warna['bg'] }} {{ $warna['text'] }}">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                                                </svg>
+                                            </span>
+                                            <span class="flex-1 text-sm text-gray-700 min-w-0 truncate">{{ $detail->alat->nama_alat ?? 'Alat sudah dihapus' }}</span>
+                                            <span class="text-xs font-semibold text-gray-400 flex-shrink-0">x{{ $detail->jumlah }}</span>
                                         </li>
                                     @empty
-                                        <li class="text-gray-400">Tidak ada data alat.</li>
+                                        <li class="text-sm text-gray-400">Tidak ada data alat.</li>
                                     @endforelse
                                 </ul>
                             </div>
@@ -142,6 +168,57 @@
                                 </dl>
                             </div>
                         </div>
+
+                        @if($p->status === 'dipinjam')
+                            <div class="mt-5">
+                                @if($p->tgl_pengajuan_kembali)
+                                    {{-- Sudah diajukan, menunggu petugas --}}
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                        <span class="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-amber-800">Menunggu verifikasi petugas</p>
+                                            <p class="text-xs text-amber-700 mt-0.5">Diajukan pada {{ $p->tgl_pengajuan_kembali->translatedFormat('d M Y, H:i') }}. Silakan serahkan alat ke petugas.</p>
+                                        </div>
+                                        <form action="{{ route('peminjam.peminjaman.batalKembali', $p->id) }}" method="POST"
+                                            onsubmit="return confirm('Batalkan pengajuan pengembalian ini?')" class="flex-shrink-0">
+                                            @csrf
+                                            <button type="submit"
+                                                class="text-sm font-semibold text-amber-800 hover:text-amber-900 hover:underline whitespace-nowrap">
+                                                Batalkan
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    {{-- Belum diajukan --}}
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                        <span class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                            </svg>
+                                        </span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-blue-900">Sudah selesai pakai alat ini?</p>
+                                            <p class="text-xs text-blue-700 mt-0.5">Ajukan pengembalian supaya petugas tahu dan bisa segera memverifikasi.</p>
+                                        </div>
+                                        <form action="{{ route('peminjam.peminjaman.ajukanKembali', $p->id) }}" method="POST"
+                                            onsubmit="return confirm('Ajukan pengembalian untuk alat ini? Pastikan alat sudah siap diserahkan ke petugas.')" class="flex-shrink-0">
+                                            @csrf
+                                            <button type="submit"
+                                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition shadow-sm">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                                </svg>
+                                                Ajukan Pengembalian
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endforeach

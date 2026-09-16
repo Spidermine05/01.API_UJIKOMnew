@@ -40,6 +40,7 @@
                         <th class="py-3 px-4 border-b">Detail Alat</th>
                         <th class="py-3 px-4 border-b">Rencana Kembali</th>
                         <th class="py-3 px-4 border-b">Status</th>
+                        <th class="py-3 px-4 border-b">Pengajuan Pengembalian</th>
                         <th class="py-3 px-4 border-b">Proses Pengembalian</th>
                     </tr>
                 </thead>
@@ -48,7 +49,7 @@
                         @php
                             $terlambat = $item->tgl_kembali_plan && \Illuminate\Support\Carbon::parse($item->tgl_kembali_plan)->isPast();
                         @endphp
-                        <tr class="hover:bg-gray-50 transition align-top">
+                        <tr class="hover:bg-gray-50 transition align-top {{ $item->tgl_pengajuan_kembali ? 'bg-amber-50/60' : '' }}">
                             <td class="py-3 px-4 border-b font-medium text-gray-900">
                                 {{ $item->user->name ?? 'User Dihapus' }}
                             </td>
@@ -68,6 +69,15 @@
                                     <span class="text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded">Terlambat</span>
                                 @else
                                     <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded">Dipinjam</span>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4 border-b">
+                                @if($item->tgl_pengajuan_kembali)
+                                    <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 bg-amber-100 px-2.5 py-1 rounded">
+                                        Diajukan {{ $item->tgl_pengajuan_kembali->translatedFormat('d M Y, H:i') }}
+                                    </span>
+                                @else
+                                    <span class="text-xs text-gray-400">Belum diajukan</span>
                                 @endif
                             </td>
                             <td class="py-3 px-4 border-b">
@@ -94,7 +104,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-6 text-center text-gray-500">Tidak ada alat yang sedang dipinjam.</td>
+                            <td colspan="6" class="py-6 text-center text-gray-500">Tidak ada alat yang sedang dipinjam.</td>
                         </tr>
                     @endforelse
                 </tbody>

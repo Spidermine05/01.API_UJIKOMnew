@@ -8,7 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 // admin
@@ -45,6 +45,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/peminjaman', [AdminController::class, 'storePeminjaman'])->name('peminjaman.store');
     Route::put('/peminjaman/{id}', [AdminController::class, 'updateStatusPeminjaman'])->name('peminjaman.updateStatus');
     Route::delete('/peminjaman/{id}', [AdminController::class, 'destroyPeminjaman'])->name('peminjaman.destroy');
+
+    // Pemantauan Pengembalian (read-only)
+    Route::get('/pengembalian', [AdminController::class, 'indexPengembalian'])->name('pengembalian.index');
 });
 
 // Petugas
@@ -57,6 +60,9 @@ Route::middleware(['auth', 'role:petugas,admin'])->prefix('petugas')->name('petu
     // Pemantauan & Pemrosesan Pengembalian
     Route::get('/pengembalian', [PetugasController::class, 'indexPengembalian'])->name('pengembalian.index');
     Route::post('/pengembalian/{id}', [PetugasController::class, 'prosesPengembalian'])->name('pengembalian.proses');
+
+    // Laporan Peminjaman
+    Route::get('/laporan', [PetugasController::class, 'indexLaporan'])->name('laporan.index');
 });
 
 // Peminjam
@@ -65,6 +71,10 @@ Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam
     Route::get('/katalog', [PeminjamController::class, 'katalogAlat'])->name('katalog');
     Route::post('/peminjaman/ajukan', [PeminjamController::class, 'ajukanPeminjaman'])->name('peminjaman.ajukan');
     Route::get('/riwayat', [PeminjamController::class, 'riwayatPeminjaman'])->name('riwayat');
+
+    // Pengajuan Pengembalian (menunggu verifikasi petugas)
+    Route::post('/peminjaman/{id}/ajukan-kembali', [PeminjamController::class, 'ajukanPengembalian'])->name('peminjaman.ajukanKembali');
+    Route::post('/peminjaman/{id}/batal-kembali', [PeminjamController::class, 'batalkanPengajuanKembali'])->name('peminjaman.batalKembali');
 });
 
 // Profil (bisa diakses semua role yang sudah login: admin, petugas, peminjam)

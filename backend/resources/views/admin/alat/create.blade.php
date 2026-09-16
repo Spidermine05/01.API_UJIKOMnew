@@ -41,7 +41,7 @@
             >
                 <option value="">-- Pilih Kategori --</option>
 
-                @foreach($kategori as $kat)
+                @foreach($kategoris as $kat)
                     <option
                         value="{{ $kat->id }}"
                         {{ old('kategori_id') == $kat->id ? 'selected' : '' }}

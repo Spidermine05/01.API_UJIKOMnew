@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('title', 'Edit KAtegori - Panel Admin')
-@section)('header-title', 'Edit Kategori alat')
+@section('header-title', 'Edit Kategori alat')
 
 @section('content')
 <div class="max-w-xl bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-    <form action="{{ route('admin.kategori.update', $kategori->id) }}" method="POST"
+    <form action="{{ route('admin.kategori.update', $kategori->id) }}" method="POST">
         @csrf
         @method('PUT')
 
