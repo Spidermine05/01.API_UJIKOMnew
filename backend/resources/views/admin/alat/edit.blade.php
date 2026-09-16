@@ -99,10 +99,10 @@
                 </span>
             </label>
 
-            @if($alat->gambar)
+           @if($alat->gambar_url)
                 <div class="mb-2">
                     <img
-                        src="{{ asset($alat->gambar) }}"
+                        src="{{ $alat->gambar_url }}"
                         alt="Preview"
                         class="w-16 h-16 object-cover rounded-lg border"
                     >

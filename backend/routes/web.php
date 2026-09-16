@@ -9,6 +9,15 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LaporanController;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        $user = auth()->user();
+        return match ($user->role) {
+            'admin'    => redirect()->route('admin.dashboard'),
+            'petugas'  => redirect()->route('petugas.peminjaman.index'),
+            'peminjam' => redirect()->route('peminjam.katalog'),
+            default    => redirect()->route('login'),
+        };
+    }
     return redirect()->route('login');
 });
 

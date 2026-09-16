@@ -84,11 +84,16 @@
                         </span>
 
                         <div class="flex items-start gap-3 mb-4 pr-6">
-                            <span class="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 {{ $warna['bg'] }} {{ $warna['text'] }}">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-                                </svg>
-                            </span>
+                           @if($alat->gambar_url)
+                                    <img src="{{ $alat->gambar_url }}"
+                                    class="w-20 h-20 rounded-lg object-cover flex-shrink-0 border border-gray-200">
+                            @else
+                                <span class="w-20 h-20 rounded-lg flex items-center justify-center flex-shrink-0 {{ $warna['bg'] }} {{ $warna['text'] }}">
+                                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                                    </svg>
+                                </span>
+                            @endif
                             <div class="min-w-0">
                                 <h4 class="font-bold text-gray-900 leading-snug">{{ $alat->nama_alat }}</h4>
                                 <p class="text-xs text-gray-500 mt-0.5">{{ $alat->kategori->nama_kategori ?? '-' }}</p>

@@ -74,10 +74,9 @@
                         <tr class="hover:bg-gray-50 transition">
 
                             <td class="py-3 px-4 border-b">
-                                @if($alat->gambar)
+                                @if($alat->gambar_url)
                                     <img
-                                        src="{{ asset($alat->gambar) }}"
-                                        alt="{{ $alat->nama_alat }}"
+                                        src="{{ $alat->gambar_url }}"
                                         class="w-12 h-12 object-cover rounded-lg border"
                                     >
                                 @else

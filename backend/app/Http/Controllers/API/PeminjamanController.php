@@ -142,28 +142,35 @@ class PeminjamanController extends Controller
         ]);
     }
     public function approve(Peminjaman $peminjaman): JsonResponse
-    {
-        id ($peminjaman->status !== 'diajukan') {
-            return response()->json([
-                'message' => "Persetujuan gagal. Status saat ini: {$peminjaman->status}."
-            ], 400);
-        }
+{
+    if ($peminjaman->status !== 'diajukan') {
+        return response()->json([
+            'message' => "Persetujuan gagal. Status saat ini: {$peminjaman->status}."
+        ], 400);
+    }
 
-        try {
-            DB::transaction(function () use ($peminjaman) {
-                $peminjaman->upadate(['status' => 'dipinjam']);
+    try {
+        DB::transaction(function () use ($peminjaman) {
 
-                foreach ($peminjaman->detailPinjam as $detail) {
-                    //mengunci baris alat demi validasi final sebelum stok dikurangi
+            $peminjaman->update([
+                'status' => 'dipinjam'
+            ]);
 
-                    $alat = Alat::lockForUpdate()->findOrFail($detail->alat_id);
+            foreach ($peminjaman->detailPinjam as $detail) {
 
-                    if ($alat->stok < $detail->jumlah) {
-                        throw new Exception("Persetujuan gagal. Stok alat '{$alat->nama_alat}' mendadak tidak mencukupi");
-                    }
-                    $alat->decrement('stok', $detail->jumlah);
+                // Mengunci baris alat sebelum stok dikurangi
+                $alat = Alat::lockForUpdate()
+                    ->findOrFail($detail->alat_id);
+
+                if ($alat->stok < $detail->jumlah) {
+                    throw new Exception(
+                        "Persetujuan gagal. Stok alat '{$alat->nama_alat}' tidak mencukupi."
+                    );
                 }
-            });
+
+                $alat->decrement('stok', $detail->jumlah);
+            }
+        });
 
             return response()->json([
                 'message' => 'Peminjaman disetujui stok alat telah otomatis dikurangi.',

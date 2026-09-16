@@ -24,4 +24,23 @@ class Alat extends Model
     public function detailPinjam(): HasMany{
         return $this->hasMany(DetilPinjam::class);
     }
+        public function getGambarUrlAttribute(): ?string
+    {
+        if (blank($this->gambar)) {
+            return null;
+        }
+
+        $path = ltrim(str_replace('\\', '/', $this->gambar), '/');
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        // data lama/seeder yang cuma nama file
+        if (!str_contains($path, '/')) {
+            $path = 'storage/alat/' . $path;
+        }
+
+        return asset($path);
+    }
 }
