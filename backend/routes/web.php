@@ -11,8 +11,6 @@ use App\Http\Controllers\LaporanController;
 Route::get('/', function () {
     return redirect()->route('login');
 });
-// Dompdf
-Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf']);
 
 // admin
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -66,6 +64,7 @@ Route::middleware(['auth', 'role:petugas,admin'])->prefix('petugas')->name('petu
 
     // Laporan Peminjaman
     Route::get('/laporan', [PetugasController::class, 'indexLaporan'])->name('laporan.index');
+        Route::get('/laporan/export-pdf', [\App\Http\Controllers\LaporanController::class, 'exportPdf'])->name('laporan.export');
 });
 
 // Peminjam

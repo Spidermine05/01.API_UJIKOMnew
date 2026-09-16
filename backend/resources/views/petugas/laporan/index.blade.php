@@ -45,9 +45,9 @@
                         Reset
                     </a>
                 @endif
-                <button type="button" onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-semibold rounded-lg transition">
+                <a href="{{ route('petugas.laporan.export', ['start_date' => $startDate, 'end_date' => $endDate, 'status' => $status]) }}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-semibold rounded-lg transition inline-block">
                     Cetak
-                </button>
+                </a>
             </div>
         </form>
     </div>

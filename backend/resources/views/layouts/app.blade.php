@@ -72,12 +72,12 @@
                 @endif
 
                 {{-- MENU BERSAMA: Profil Saya (admin & petugas) --}}
-                <div class="pt-2 mt-2 border-t border-gray-800">
+                {{-- <div class="pt-2 mt-2 border-t border-gray-800">
                     <a href="{{ route('profile.edit') }}"
                         class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'bg-gray-800 text-white font-medium shadow' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
                         Profil Saya
                     </a>
-                </div>
+                </div> --}}
             </nav>
             <div class="p-4 border-t border-gray-800">
                 <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 group">

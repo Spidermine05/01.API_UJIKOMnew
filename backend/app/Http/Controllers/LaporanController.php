@@ -5,41 +5,26 @@ namespace App\Http\Controllers;
 use App\Models\Peminjaman;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class LaporanController extends Controller
 {
     public function exportPdf(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
-            'end_date'   => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-            'status'     => ['nullable', 'string', 'in:diajukan,dipinjam,dikembangkan,telat'],
-        ]);
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $status    = $request->input('status');
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Parameter filter tidak valid.',
-                'errors'  => $validator->errors()
-            ], 422);
-        }
+        $laporan = Peminjaman::with(['user', 'detailPinjam.alat', 'pengembalian'])
+            ->when($startDate, fn ($query, $startDate) => $query->whereDate('tgl_pinjam', '>=', $startDate))
+            ->when($endDate, fn ($query, $endDate) => $query->whereDate('tgl_pinjam', '<=', $endDate))
+            ->when($status, fn ($query, $status) => $query->where('status', $status))
+            ->latest('tgl_pinjam')
+            ->get();
 
-        $query = Peminjaman::with(['user', 'detailPinjam.alat', 'pengembalian.petugas']);
+        $dicetakOleh = auth()->user()->name ?? 'Petugas';
 
-        $query->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
-            $q->whereBetween('tgl_pinjam', [$request->start_date, $request->end_date]);
-        });
-
-        $query->when($request->filled('status'), function ($q) use ($request) {
-            $q->where('status', $request->status);
-        });
-
-        $laporan = $query->latest()->get();
-
-        $pdf = Pdf::loadView('laporan.pdf', [
-            'title'   => 'Laporan Peminjaman',
-            'laporan' => $laporan,
-        ])->setPaper('a4', 'landscape');
+        $pdf = Pdf::loadView('laporan.pdf', compact('laporan', 'startDate', 'endDate', 'status', 'dicetakOleh'))
+            ->setPaper('a4', 'landscape');
 
         return $pdf->download('laporan-peminjaman.pdf');
     }
