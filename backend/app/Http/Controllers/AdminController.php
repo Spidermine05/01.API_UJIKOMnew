@@ -15,9 +15,43 @@ use Illuminate\Support\Facades\DB;
 class AdminController extends Controller
 {
     // Menampilkan Dashboard Admin 
+       // Menampilkan Dashboard Admin
     public function index()
     {
-        return  view('admin.dashboard');
+        $totalAlat  = Alat::count();
+        $stokHabis  = Alat::where('stok', 0)->count();
+
+        $totalUser   = User::count();
+        $totalPetugas = User::where('role', 'petugas')->count();
+        $totalPeminjam = User::where('role', 'peminjam')->count();
+
+        $peminjamanAktif = Peminjaman::where('status', 'dipinjam')->count();
+
+        $telatKembali = Peminjaman::where('status', 'dipinjam')
+            ->where('tgl_kembali_plan', '<', now())
+            ->count();
+
+        $alatSering = DetilPinjam::selectRaw('alat_id, SUM(jumlah) as total_pinjam')
+            ->groupBy('alat_id')
+            ->orderByDesc('total_pinjam')
+            ->with('alat')
+            ->take(3)
+            ->get();
+
+        $totalMenunggu = Peminjaman::where('status', 'diajukan')->count();
+
+        $menungguPersetujuan = Peminjaman::with(['user', 'detailPinjam.alat'])
+            ->where('status', 'diajukan')
+            ->latest()
+            ->take(3)
+            ->get();
+
+        return view('admin.dashboard', compact(
+            'totalAlat', 'stokHabis',
+            'totalUser', 'totalPetugas', 'totalPeminjam',
+            'peminjamanAktif', 'telatKembali',
+            'alatSering', 'totalMenunggu', 'menungguPersetujuan'
+        ));
     }
     // Menampilkan Log aktivitas
     public function indexLogAktivitas()
@@ -325,9 +359,10 @@ class AdminController extends Controller
     }
 
     // 1. Menampilkan daftar peminjaman
-    public function indexPeminjaman(Request $request)
+        public function indexPeminjaman(Request $request)
     {
         $search =   $request->input('search');
+        $status =   $request->input('status');
 
         $peminjamans = Peminjaman::with(['user', 'detailPinjam.alat'])
             ->when($search, function ($query, $search) {
@@ -336,11 +371,14 @@ class AdminController extends Controller
                         $q->where('name', 'like', "%{$search}%");
                     });
             })
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
+            })
             ->latest()
             ->paginate()
             ->withQueryString();
 
-            return view('admin.peminjaman.index', compact('peminjamans', 'search'));
+            return view('admin.peminjaman.index', compact('peminjamans', 'search', 'status'));
     }
 
     // 2. Menampilkan form tambah peminjaman

@@ -22,6 +22,9 @@
             <div class="flex items-center gap-3 w-full md:w-auto">
                 <!-- Form Search -->
                 <form action="{{ route('admin.peminjaman.index') }}" method="GET" class="flex w-full md:w-80">
+                    @if($status)
+                        <input type="hidden" name="status" value="{{ $status }}">
+                    @endif
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama peminjam / status..."
                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                      <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 text-sm font-semibold rounded-r-lg transition">
@@ -42,7 +45,12 @@
                 </a>
             </div>
         </div>
-
+        @if($status)
+        <div class="px-5 py-3 bg-yellow-50 border-b border-yellow-200 text-sm text-yellow-800 flex items-center justify-between">
+            <span>Menampilkan hanya status: <strong class="capitalize">{{ $status }}</strong></span>
+            <a href="{{ route('admin.peminjaman.index') }}" class="text-yellow-700 underline font-medium">Reset filter</a>
+        </div>
+        @endif
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
