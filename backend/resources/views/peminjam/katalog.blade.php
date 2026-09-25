@@ -101,11 +101,13 @@
                         </div>
 
                         <div class="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full
-                                {{ $alat->stok > 10 ? 'bg-emerald-100 text-emerald-800' : ($alat->stok > 3 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800') }}">
-                                {{ $alat->stok }} unit
-                            </span>
-
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full
+                    {{ $alat->stok == 0 ? 'bg-red-100 text-red-800' : ($alat->stok > 10 ? 'bg-emerald-100 text-emerald-800' : ($alat->stok > 3 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')) }}">
+                    {{ $alat->stok == 0 ? 'Stok Habis' : $alat->stok . ' unit' }}
+                </span>
+                        @if($alat->stok == 0)
+                            <span class="text-xs text-red-500 font-medium">Tidak bisa dipinjam</span>
+                        @else
                             <div class="flex items-center gap-1.5">
                                 <button type="button" class="btn-minus w-7 h-7 rounded-md border border-gray-300 text-gray-500 font-bold hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition" disabled>
                                     &minus;
@@ -116,7 +118,8 @@
                                     +
                                 </button>
                             </div>
-                        </div>
+                        @endif
+                    </div>
                     </div>
                 @empty
                     <p class="col-span-full py-6 text-center text-gray-500">Tidak ada alat yang tersedia saat ini.</p>
@@ -168,6 +171,10 @@
             var inputJumlah = kartu.querySelector('.input-jumlah');
             var btnMinus = kartu.querySelector('.btn-minus');
             var btnPlus = kartu.querySelector('.btn-plus');
+
+                if (parseInt(kartu.dataset.stok, 10) === 0) {
+            return; // skip: stok habis, kartu tidak bisa dipilih/klik
+            }
 
             function setTerpilih(terpilih) {
                 chk.checked = terpilih;

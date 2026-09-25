@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="max-w-xl bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-    <form action="{{ route('admin.user.store') }}" method="POST">
+    <form action="{{ route('admin.user.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <div class="mb-4">
@@ -39,10 +39,16 @@
         </div>
 
         <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-semibold mb-2">No. HP (Opsional)</label>
+            <label class="block text-gray-700 text-sm font-semibold mb-2">No. HP</label>
             <input type="text" name="no_hp" value="{{ old('no_hp') }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus-ring-blue-500">
+                @error('no_hp') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
         </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-semibold mb-2">Foto Profil</label>
+            <input type="file" name="foto_profile" accept="image/png, image/jpeg, image/jpg"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
         <div class="flex justify-end space-x-2">
             <a href="{{ route('admin.user.index') }}"

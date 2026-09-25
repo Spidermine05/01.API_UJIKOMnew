@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="max-w-xl bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-    <form action="{{ route('admin.user.update', $user->id) }}" method="POST">
+    <form action="{{ route('admin.user.update', $user->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -19,6 +19,7 @@
             <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
             <input type="email" name="email" value="{{ old('email', $user->email) }}" required 
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
         </div>
 
         <div class="mb-4">
@@ -41,6 +42,15 @@
             <label class="block text-gray-700 text-sm font-semibold mb-2">No. HP</label>
             <input type="text" name="no_hp" value="{{ old('no_hp', $user->no_hp) }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ouline-none focus:ring-2 focus:ring-blue-500">
+                @error('no_hp') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+        </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-semibold mb-2">Foto Profil</label>
+            @if($user->foto_profile)
+                <img src="{{ asset($user->foto_profile) }}" alt="Foto Profil" class="w-16 h-16 rounded-full object-cover mb-2 border border-gray-200">
+            @endif
+            <input type="file" name="foto_profile" accept="image/png, image/jpeg, image/jpg"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
         <div class="flex justify-end space-x-2">

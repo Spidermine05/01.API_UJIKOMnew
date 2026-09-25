@@ -56,8 +56,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/peminjaman/{id}', [AdminController::class, 'updateStatusPeminjaman'])->name('peminjaman.updateStatus');
     Route::delete('/peminjaman/{id}', [AdminController::class, 'destroyPeminjaman'])->name('peminjaman.destroy');
 
-    // Pemantauan Pengembalian (read-only)
+        // Pemantauan Pengembalian 
     Route::get('/pengembalian', [AdminController::class, 'indexPengembalian'])->name('pengembalian.index');
+    Route::post('/pengembalian/{id}', [AdminController::class, 'prosesPengembalian'])->name('pengembalian.proses');
+    Route::put('/pengembalian/riwayat/{id}', [AdminController::class, 'updatePengembalian'])->name('pengembalian.update');
+    Route::delete('/pengembalian/riwayat/{id}', [AdminController::class, 'destroyPengembalian'])->name('pengembalian.destroy');
+
+
+    //Log Aktivitas
+    Route::get('/log-aktivitas', [AdminController::class, 'indexLogAktivitas'])->name('log-aktivitas.index');
 });
 
 // Petugas

@@ -14,11 +14,18 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
-    // Menampilkan Dashboard Admin & Log Aktivitas
+    // Menampilkan Dashboard Admin 
     public function index()
     {
-        $logs   =   LogAktivitas::with('user')->latest()->take(10)->get();
-        return  view('admin.dashboard', compact('logs'));
+        return  view('admin.dashboard');
+    }
+    // Menampilkan Log aktivitas
+    public function indexLogAktivitas()
+    {
+    
+        $logs = LogAktivitas::with('user')->latest()->paginate(15);
+        return view('admin.log-aktivitas.index', compact('logs'));
+    
     }
 
     // CRUD Alat: Menampilkan daftar alat
@@ -140,7 +147,7 @@ class AdminController extends Controller
                 ->orWhere('email', 'like', "%{$search}%")
                 ->orWhere('role', 'like', "%{$search}%");
         })
-                ->latest()
+                ->orderBy('id', 'asc')
                 ->paginate(10) // Tampilkan 10 data per halaman
                 ->withQueryString(); // Memastikan parameter search tetap ada saat pindah halaman
 
@@ -161,15 +168,29 @@ class AdminController extends Controller
             'password'  =>  'required|string|min:6',
             'role'      =>  'required|in:admin,petugas,peminjam',
             'no_hp'     =>  'required|string|max:15|unique:users,no_hp',
+            'foto_profile'  =>  'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            
+            'no_hp.required' => 'Nomor HP wajib diisi.',
+            'no_hp.unique'   => 'Nomor HP sudah digunakan oleh user lain.',
         ]);
 
-        User::create([
+        $data = [
             'name'      =>  $request->name,
             'email'     =>  $request->email,
             'password'  =>  Hash::make($request->password),
             'role'      =>  $request->role,
             'no_hp'     =>  $request->no_hp,
-        ]);
+    ];
+
+    if ($request->hasFile('foto_profile')) {
+        $file     = $request->file('foto_profile');
+        $filename = time() . '-' . preg_replace('/\s+/', '-', $file->getClientOriginalName());
+        $file->move(public_path('storage/profil'), $filename);
+        $data['foto_profile'] = 'storage/profil/' . $filename;
+    }
+
+    User::create($data);
 
         return redirect()->route('admin.user.index')->with('success', 'User berhasil ditambahkan.');
     }
@@ -189,6 +210,11 @@ class AdminController extends Controller
             'name'      =>  'required|string|max:255',
             'email'     =>  'required|string|email|max:255|unique:users,email,' . $id,
             'role'      =>  'required|in:admin,petugas,peminjam',
+            'no_hp'     =>  'required|string|max:15|unique:users,no_hp,' . $id,
+            'foto_profile'  =>  'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'no_hp.unique'   => 'Nomor HP sudah digunakan oleh user lain.',
+            'email.unique'   => 'Email Sudah digunakan oleh user lain.',
         ]);
 
         $data = [
@@ -200,6 +226,16 @@ class AdminController extends Controller
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
+        }
+        if ($request->hasFile('foto_profile')) {
+        if ($user->foto_profile && file_exists(public_path($user->foto_profile))) {
+            unlink(public_path($user->foto_profile));
+        }
+
+            $file     = $request->file('foto_profile');
+            $filename = time() . '-' . preg_replace('/\s+/', '-', $file->getClientOriginalName());
+            $file->move(public_path('storage/profil'), $filename);
+            $data['foto_profile'] = 'storage/profil/' . $filename;
         }
 
         $user->update($data);
@@ -446,5 +482,83 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.pengembalian.index', compact('dipinjam', 'riwayat', 'search'));
+    }
+        // Proses pengembalian oleh admin (sama seperti alur petugas)
+    public function prosesPengembalian(Request $request, $peminjamanId)
+    {
+        $request->validate([
+            'kondisi_kembali' => 'required|string',
+            'denda' => 'nullable|integer|min:0',
+        ]);
+        DB::beginTransaction();
+        try {
+            $peminjaman = Peminjaman::with('detailPinjam')->findOrFail($peminjamanId);
+
+            \App\Models\Pengembalian::create([
+                'peminjaman_id' => $peminjaman->id,
+                'tgl_kembali' => now(),
+                'kondisi_kembali' => $request->kondisi_kembali,
+                'denda' => $request->denda ?? 0,
+                'petugas_id' => auth()->id(),
+            ]);
+
+            $peminjaman->update(['status' => 'selesai']);
+
+            foreach ($peminjaman->detailPinjam as $detail) {
+                $alat = Alat::findOrFail($detail->alat_id);
+                $alat->stok += $detail->jumlah;
+                $alat->save();
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Pengembalian berhasil dicatat dan stok dipulihkan.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    // Edit data pengembalian yang sudah tercatat (koreksi kondisi/denda)
+    public function updatePengembalian(Request $request, $id)
+    {
+        $request->validate([
+            'kondisi_kembali' => 'required|string',
+            'denda' => 'nullable|integer|min:0',
+        ]);
+
+        $pengembalian = \App\Models\Pengembalian::findOrFail($id);
+        $pengembalian->update([
+            'kondisi_kembali' => $request->kondisi_kembali,
+            'denda' => $request->denda ?? 0,
+        ]);
+
+        return redirect()->back()->with('success', 'Data pengembalian berhasil diperbarui.');
+    }
+
+    // Hapus data pengembalian (membalikkan stok & status peminjaman biar tetap sinkron)
+    public function destroyPengembalian($id)
+    {
+        DB::beginTransaction();
+        try {
+            $pengembalian = \App\Models\Pengembalian::with('peminjaman.detailPinjam')->findOrFail($id);
+            $peminjaman = $pengembalian->peminjaman;
+
+            if ($peminjaman) {
+                foreach ($peminjaman->detailPinjam as $detail) {
+                    $alat = Alat::findOrFail($detail->alat_id);
+                    $alat->stok -= $detail->jumlah;
+                    $alat->save();
+                }
+                $peminjaman->update(['status' => 'dipinjam']);
+            }
+
+            $pengembalian->delete();
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Data pengembalian dihapus, stok & status peminjaman dikembalikan seperti semula.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }
