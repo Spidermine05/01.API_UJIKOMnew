@@ -115,6 +115,20 @@ class AdminController extends Controller
 
         return redirect()->route('admin.alat.index')->with('success', 'Data alat berhasil diupdate.');
     }
+        // Menghapus data alat
+    public function destroyAlat($id)
+    {
+        $alat = Alat::findOrFail($id);
+
+        // Hapus file gambar jika ada
+        if ($alat->gambar && file_exists(public_path($alat->gambar))) {
+            unlink(public_path($alat->gambar));
+        }
+
+        $alat->delete();
+
+        return redirect()->route('admin.alat.index')->with('success', 'Data alat berhasil dihapus.');
+    }
 
     // CRUD User (Manajemen User Admin, Petugas, Peminjam)
     public function indexUser(Request $request)
@@ -146,6 +160,7 @@ class AdminController extends Controller
             'email'     =>  'required|string|email|max:255|unique:users',
             'password'  =>  'required|string|min:6',
             'role'      =>  'required|in:admin,petugas,peminjam',
+            'no_hp'     =>  'required|string|max:15|unique:users,no_hp',
         ]);
 
         User::create([

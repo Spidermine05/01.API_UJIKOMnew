@@ -43,4 +43,8 @@ class Alat extends Model
 
         return asset($path);
     }
+    public function scopeTersedia($query)
+{
+    return $query->where('stok', '>', 0);
+}
 }
