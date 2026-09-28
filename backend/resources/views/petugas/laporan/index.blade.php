@@ -88,15 +88,15 @@
                                     @endforeach
                                 </ul>
                             </td>
-                            <td class="py-3 px-4 border-b">{{ $item->tgl_pinjam }}</td>
-                            <td class="py-3 px-4 border-b">{{ $item->tgl_kembali_plan }}</td>
+                            <td class="py-3 px-4 border-b">{{ $item->tgl_pinjam?->translatedFormat('d M Y') }}</td>
+                            <td class="py-3 px-4 border-b">{{ $item->tgl_kembali_plan?->translatedFormat('d M Y') }}</td>
                             <td class="py-3 px-4 border-b">
                                 <span class="text-xs font-semibold px-2.5 py-1 rounded bg-gray-100 text-gray-700">
                                     {{ ucfirst($item->status) }}
                                 </span>
                             </td>
                             <td class="py-3 px-4 border-b">
-                                {{ $item->pengembalian->tgl_kembali ?? '-' }}
+                                {{ $item->pengembalian?->tgl_kembali?->translatedFormat('d M Y') ?? '-' }}
                                 @if($item->pengembalian)
                                     <div class="text-xs text-gray-500">{{ $item->pengembalian->kondisi_kembali }}</div>
                                 @endif

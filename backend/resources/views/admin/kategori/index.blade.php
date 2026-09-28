@@ -5,7 +5,7 @@
 
 @section('content')
 {{-- Notifikasi --}}
-@if(session('succes'))
+@if(session('success'))
     <div class="mb-4 bg-emeral-50 border border-emeral-200 text-emeral-800 p-4 rounded-lg shadow-sm text-sm">
         {{ session('success') }}
     </div>

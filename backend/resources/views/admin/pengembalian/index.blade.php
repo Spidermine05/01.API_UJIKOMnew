@@ -62,7 +62,7 @@
                                     @endforeach
                                 </ul>
                             </td>
-                            <td class="py-3 px-4 border-b">{{ $item->tgl_kembali_plan }}</td>
+                            <td class="py-3 px-4 border-b">{{ $item->tgl_kembali_plan?->translatedFormat('d M Y') }}</td>
                             <td class="py-3 px-4 border-b">
                                 @if($terlambat)
                                     <span class="text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded">Terlambat</span>
@@ -184,7 +184,7 @@
                                     @endforeach
                                 </ul>
                             </td>
-                            <td class="py-3 px-4 border-b">{{ $r->tgl_kembali }}</td>
+                            <td class="py-3 px-4 border-b">{{ $r->tgl_kembali?->translatedFormat('d M Y') }}</td>
                             <td class="py-3 px-4 border-b">
                                 <span class="text-xs font-semibold px-2.5 py-1 rounded
                                     {{ $r->kondisi_kembali == 'Baik' ? 'text-emerald-700 bg-emerald-50' : 'text-amber-700 bg-amber-50' }}">

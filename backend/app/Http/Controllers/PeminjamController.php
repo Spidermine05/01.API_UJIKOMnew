@@ -15,46 +15,64 @@ class PeminjamController extends Controller
         $alats = Alat::with('kategori')->get();
         return view('peminjam.katalog', compact('alats'));
     }
+
     public function ajukanPeminjaman(Request $request) {
         $request->validate([
             'tgl_kembali_plan' => 'required|date|after:today',
-            'alat_id' => 'required|array',
-            'jumlah' => 'required|array',
+            'alat_id'   => 'required|array|min:1',
+            'alat_id.*' => 'exists:alat,id',
+            'jumlah'    => 'required|array',
+            'jumlah.*'  => 'integer|min:1',
         ]);
 
         DB::beginTransaction();
         try {
-            // Buat header peminjam
-            $peminjam = Peminjaman::create ([
+            // Gabungkan jumlah kalau alat yang sama terkirim lebih dari sekali
+            $kebutuhan = [];
+            foreach ($request->alat_id as $index => $alatId) {
+                $kebutuhan[$alatId] = ($kebutuhan[$alatId] ?? 0) + (int) $request->jumlah[$index];
+            }
+
+            // Validasi stok SEBELUM menyimpan apa pun
+            foreach ($kebutuhan as $alatId => $jumlah) {
+                $alat = Alat::findOrFail($alatId);
+                if ($jumlah > $alat->stok) {
+                    throw new \Exception("Jumlah alat '{$alat->nama_alat}' melebihi stok tersedia. Sisa stok: {$alat->stok}.");
+                }
+            }
+
+            // Buat header peminjaman
+            $peminjam = Peminjaman::create([
                 'user_id' => auth()->id(),
                 'tgl_pinjam' => now(),
                 'tgl_kembali_plan' => $request->tgl_kembali_plan,
                 'status' => 'diajukan',
             ]);
-            
-            // Masukkan daftar alat yang dipinjam ke detail_pinjam
-            foreach ($request->alat_id as $index => $alatId) {
+
+            // Simpan detail alat yang dipinjam
+            foreach ($kebutuhan as $alatId => $jumlah) {
                 DetilPinjam::create([
                     'peminjaman_id' => $peminjam->id,
                     'alat_id' => $alatId,
-                    'jumlah' => $request->jumlah[$index],
+                    'jumlah' => $jumlah,
                 ]);
             }
 
             DB::commit();
-            return redirect()->route('peminjam.riwayat')->with('success','Pengajuan peminjaman berhasil dikirim.');
-        } catch(\Exception $e) {
+            return redirect()->route('peminjam.riwayat')->with('success', 'Pengajuan peminjaman berhasil dikirim.');
+        } catch (\Exception $e) {
             DB::rollback();
-            return redirect()->back()->with('error','Gagal mengajukan peminjaman: '. $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Gagal mengajukan peminjaman: ' . $e->getMessage());
         }
     }
-    public function riwayatPeminjaman(){
+
+    public function riwayatPeminjaman() {
         $peminjamans = Peminjaman::with(['detailPinjam.alat.kategori', 'pengembalian'])
             ->where('user_id', auth()->id())
             ->latest()
             ->get();
 
-            return view('peminjam.riwayat', compact('peminjamans'));
+        return view('peminjam.riwayat', compact('peminjamans'));
     }
 
     // Peminjam melaporkan bahwa alat sudah/akan dikembalikan (menunggu verifikasi petugas)

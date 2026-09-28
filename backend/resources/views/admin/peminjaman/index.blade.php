@@ -10,9 +10,9 @@
         </div>
     @endif
     @if (session('error'))
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg shadow-sm text-sm">
-            {{ session('success') }}
-        </div>
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg shadow-sm text-sm">
+        {{ session('error') }}
+    </div>
     @endif
 
     <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-b-gray-200">
@@ -79,8 +79,8 @@
                                 </ul>
                             </td>
                             <td class="py-3 px-4 border-b text-xs text-gray-500">
-                                <span class="block">Pinjam: {{ $peminjaman->tgl_pinjam }}</span>
-                                <span class="block font-semibold">Rencana: {{ $peminjaman->tgl_kembali_plan }}</span>
+                                <span class="block">Pinjam: {{ $peminjaman->tgl_pinjam?->translatedFormat('d M Y') }}</span>
+<span class="block font-semibold">Rencana: {{ $peminjaman->tgl_kembali_plan?->translatedFormat('d M Y') }}</span>
                             </td>
                             <td class="py-3 px-4 border-b">
                                 <span class="px-2.5 py-1 text-xs font-semibold rounded-full
@@ -98,10 +98,20 @@
                                         @csrf 
                                         @method('PUT')
                                         <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none">
-                                            <option value="diajukan" {{ $peminjaman->status == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
-                                            <option value="dipinjam" {{ $peminjaman->status == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                                            <option value="selesai" {{ $peminjaman->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                            <option value="telat" {{ $peminjaman->status == 'telat' ? 'selected' : '' }}>Telat</option>
+                                            @php
+                                                $alurStatus = [
+                                                    'diajukan' => ['dipinjam'],
+                                                    'dipinjam' => ['selesai', 'telat'],
+                                                    'telat'    => ['selesai'],
+                                                    'selesai'  => [],
+                                                ];
+                                                $boleh = $alurStatus[$peminjaman->status] ?? [];
+                                            @endphp
+                                            @foreach(['diajukan' => 'Diajukan', 'dipinjam' => 'Dipinjam', 'selesai' => 'Selesai', 'telat' => 'Telat'] as $val => $label)
+                                                <option value="{{ $val }}"
+                                                    {{ $peminjaman->status == $val ? 'selected' : '' }}
+                                                    {{ ($peminjaman->status != $val && !in_array($val, $boleh)) ? 'disabled' : '' }}>{{ $label }}</option>
+                                            @endforeach
                                         </select>
                                     </form>
 

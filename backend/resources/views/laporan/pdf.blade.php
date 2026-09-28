@@ -180,11 +180,11 @@
                             {{ $detail->alat->nama_alat ?? 'Alat Dihapus' }} ({{ $detail->jumlah }})<br>
                         @endforeach
                     </td>
-                    <td>{{ $item->tgl_pinjam }}</td>
-                    <td>{{ $item->tgl_kembali_plan }}</td>
+                    <td>{{ $item->tgl_pinjam?->translatedFormat('d M Y') }}</td>
+                    <td>{{ $item->tgl_kembali_plan?->translatedFormat('d M Y') }}</td>
                     <td><span class="badge">{{ ucfirst($item->status) }}</span></td>
                     <td>
-                        {{ $item->pengembalian->tgl_kembali ?? '-' }}
+                        {{ $item->pengembalian?->tgl_kembali?->translatedFormat('d M Y') ?? '-' }}
                         @if($item->pengembalian)
                             <br><span class="muted">{{ $item->pengembalian->kondisi_kembali }}</span>
                         @endif
