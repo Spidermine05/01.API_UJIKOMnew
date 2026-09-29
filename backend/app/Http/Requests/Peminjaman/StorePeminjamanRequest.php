@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Request\Peminjaman;
+namespace App\Http\Requests\Peminjaman;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,7 +21,7 @@ class StorePeminjamanRequest extends FormRequest
         'items.*.jumlah' => ['required','integer','min:1'],
         ];
     }
-    public function message(): array
+    public function messages(): array
     {
         return [
             'tgl_kembali_plan.required' => 'Tanggal rencana pengembalian wajib diisi.',

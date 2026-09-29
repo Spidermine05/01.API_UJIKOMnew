@@ -15,7 +15,7 @@ class PeminjamanResource extends JsonResource
             'tgl_kembali_plan' => $this->tgl_kembali_plan?->format('Y-m-d'),
             'status' => $this->status,
             'item dipinjam' => $this->whenLoaded('detailPinjam', function () {
-                return $this->detailPinjam->mapp(function ($detail) {
+                return $this->detailPinjam->map(function ($detail) {
                     return [
                         'nama_alat' => $detail->alat?->nama_alat ?? 'Alat Dihapus/Tidak ditemukan',
                         'jumlah' => (int) $detail->jumlah,
