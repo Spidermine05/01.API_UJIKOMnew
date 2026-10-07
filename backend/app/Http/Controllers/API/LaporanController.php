@@ -8,6 +8,7 @@ use App\Models\Peminjaman;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
@@ -17,7 +18,7 @@ class LaporanController extends Controller
         $validator = Validator::make($request->all(), [
             'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
             'end_date'   => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-            'status'     => ['nullable', 'string', 'in:diajukan,dipinjam,dikembalikan,telat'],
+            'status'     => ['nullable', 'string', 'in:diajukan,dipinjam,dikembalikan,telat,selesai'],
             'per_page'   => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
@@ -32,9 +33,8 @@ class LaporanController extends Controller
         $query = Peminjaman::with(['user', 'detailPinjam.alat', 'pengembalian.petugas']);
 
         // Filter: Rentang Tanggal Pinjam
-        $query->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($request) {
-            $q->whereBetween('tgl_pinjam', [$request->start_date, $request->end_date]);
-        });
+        $query->when($request->filled('start_date'), fn ($q) => $q->whereDate('tgl_pinjam', '>=', $request->start_date));
+        $query->when($request->filled('end_date'), fn ($q) => $q->whereDate('tgl_pinjam', '<=', $request->end_date));
 
         // Filter: Status Peminjaman
         $query->when($request->filled('status'), function ($q) use ($request) {
@@ -51,5 +51,30 @@ class LaporanController extends Controller
                 'message' => 'Laporan peminjaman berhasil ditarik.'
             ])
             ->response();
+    }
+        public function export(Request $request)
+    {
+        $request->validate([
+            'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
+            'end_date'   => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'status'     => ['nullable', 'string', 'in:diajukan,dipinjam,dikembalikan,telat,selesai'],
+        ]);
+
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $status    = $request->input('status');
+
+        $laporan = Peminjaman::with(['user', 'detailPinjam.alat', 'pengembalian'])
+            ->when($startDate, fn ($q, $v) => $q->whereDate('tgl_pinjam', '>=', $v))
+            ->when($endDate, fn ($q, $v) => $q->whereDate('tgl_pinjam', '<=', $v))
+            ->when($status, fn ($q, $v) => $q->where('status', $v))
+            ->latest('tgl_pinjam')
+            ->get();
+
+        $dicetakOleh = auth()->user()->name;
+
+        return Pdf::loadView('laporan.pdf', compact('laporan', 'startDate', 'endDate', 'status', 'dicetakOleh'))
+            ->setPaper('a4', 'landscape')
+            ->download('laporan-peminjaman.pdf');
     }
 }

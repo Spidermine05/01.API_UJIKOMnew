@@ -9,9 +9,12 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -39,10 +42,11 @@ class AuthController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 'message' => 'Terjadi kesalahan saat registrasi.',
-                'error' => $e->getMessage(),
             ], 500);
+
         }
     }
 
@@ -57,8 +61,9 @@ class AuthController extends Controller
                 ],
             ]);
         }
-
+        $user->tokens()->delete();
         $token = $user->createToken('auth_token')->plainTextToken;
+        
 
         return response()->json([
             'message' => 'Login berhasil.',
@@ -66,6 +71,46 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
         ]);
+    }
+        public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'name'         => ['required', 'string', 'max:255'],
+            'email'        => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'no_hp'        => ['nullable', 'string', 'max:20'],
+            'alamat'       => ['nullable', 'string', 'max:500'],
+            'foto_profile' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+        ]);
+
+        $data = $request->only(['name', 'email', 'no_hp', 'alamat']);
+
+        if ($request->hasFile('foto_profile')) {
+            if ($user->foto_profile) {
+                Storage::disk('public')->delete($user->foto_profile);
+            }
+            $data['foto_profile'] = $request->file('foto_profile')->store('profiles', 'public');
+        }
+
+        $user->update($data);
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui.',
+            'data' => new UserResource($user->refresh()),
+        ]);
+    }
+
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password:sanctum'],
+            'password'         => ['required', 'confirmed', 'min:8'],
+        ]);
+
+        $request->user()->update(['password' => Hash::make($request->password)]);
+
+        return response()->json(['message' => 'Password berhasil diperbarui.']);
     }
 
     public function me(Request $request): JsonResponse

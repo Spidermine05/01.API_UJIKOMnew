@@ -7,6 +7,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Models\Pengembalian;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -19,12 +20,11 @@ class UserController extends Controller
      */
     public function index(): JsonResponse
     {
-        $users = User::latest()->get();
+                $users = User::latest()->paginate(15);
 
-        return response()->json([
-            'message' => 'Daftar Pengguna berhasil diambil',
-            'data' => UserResource::collection($users)
-        ]);
+        return UserResource::collection($users)
+            ->additional(['message' => 'Daftar Pengguna berhasil diambil'])
+            ->response();
     }
 
     /**
@@ -74,6 +74,10 @@ class UserController extends Controller
         User $user
     ): JsonResponse {
 
+        if ($user->id === auth()->id() && $request->role !== $user->role) {
+            return response()->json(['message' => 'Tidak dapat mengubah role akun sendiri.'], 403);
+        }
+
         $data = collect($request->validated());
 
         DB::transaction(function () use ($request, $data, $user) {
@@ -120,6 +124,21 @@ class UserController extends Controller
      */
     public function destroy(User $user): JsonResponse
     {
+
+        if ($user->id === auth()->id()) {
+            return response()->json(['message' => 'Tidak dapat menghapus akun sendiri.'], 403);
+        }
+        if ($user->peminjaman()->whereIn('status', ['diajukan', 'dipinjam', 'telat'])->exists()) {
+            return response()->json([
+                'message' => 'Pengguna tidak dapat dihapus karena masih memiliki peminjaman aktif.'
+            ], 409);
+        }
+
+        if (Pengembalian::where('petugas_id', $user->id)->exists()) {
+            return response()->json([
+                'message' => 'Pengguna tidak dapat dihapus karena pernah memproses pengembalian.'
+            ], 409);
+        }
         DB::transaction(function () use ($user) {
 
             // Hapus foto profile

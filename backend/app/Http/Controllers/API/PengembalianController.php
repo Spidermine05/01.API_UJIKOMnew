@@ -5,11 +5,11 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pengembalian\StorePengembalianRequest;
 use App\Http\Requests\Pengembalian\UpdatePengembalianRequest;
+use App\Http\Resources\PengembalianResource;
 use App\Models\Alat;
 use App\Models\Peminjaman;
 use App\Models\Pengembalian;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -30,7 +30,7 @@ class PengembalianController extends Controller
         $pengembalian = $query->latest()->get();
         return response()->json([
             'message' => 'Riwayat pengembalian berhasil diambil',
-            'data' => $pengembalian
+            'data' => PengembalianResource::collection($pengembalian)
         ]);
     }
 
@@ -46,11 +46,7 @@ class PengembalianController extends Controller
                 if ($peminjaman->status !== 'dipinjam') {
                     throw new Exception("Data ditolak. Peminjaman ini berstatus '{$peminjaman->status}', bukan 'dipinjam'.");
                 }
-                //cek keterlambatan menggunakan carbon
-                $tglKembaliPlan = Carbon::parse($peminjaman->tgl_kembali_plan)->startOfDay();
-                    $hariIni = Carbon::now()->startOfDay();
-                    //jika hari ini lebih besar dari tanggal rencana kembali, maka telat
-                    $statusPeminjamanBaru = $hariIni->greaterThan($tglKembaliPlan) ? 'telat' : 'dikembalikan';
+                    $statusPeminjamanBaru = 'selesai';
 
                     // 1. Inserrt data ketabel pengembalian
                     $pengembalian = Pengembalian::create([
@@ -71,18 +67,13 @@ class PengembalianController extends Controller
                         $alat->increment('stok', $detail->jumlah);
                     }
 
-                    //opsional: Catat ke log aktivitas petugas
-                    /** @var User $petugas */
-                    $petugas = auth()->user();
-                    $petugas->logAktivitas()->create([
-                        'aktivitas' => "Memproses pengembalian peminjaman ID: #{$peminjaman->id} dengan status akhir: {$statusPeminjamanBaru}."
-                    ]);
+                   
                     //Load relasi agar response JSON lebih informatif
                     return $pengembalian->load(['peminjaman.user', 'petugas']);
             });
             return response()->json([
                 'message' => 'Proses pengembalian alat berhasil diselesaikan',
-                'data' => $pengembalian
+                'data' => new PengembalianResource($pengembalian)
             ],201);
         } catch (Exception $e) {
             //tangkap pesan error dari throw exception diatas (misal status bukan dipinjam)
@@ -105,7 +96,7 @@ class PengembalianController extends Controller
         }
         return response()->json([
             'message' => 'Detail pengembalian berhasil diambil',
-            'data' => $pengembalian
+            'data' => new PengembalianResource($pengembalian)
         ]);
         
     }
@@ -119,7 +110,7 @@ class PengembalianController extends Controller
         ]);
         return response()->json([
             'message' => 'Data Pengembalian berhasil diperbarui',
-            'data' => $pengembalian->load(['peminjaman.user','petugas'])
+            'data' => new PengembalianResource($pengembalian->load(['peminjaman.user','petugas']))
         ]);
     }
 
@@ -142,12 +133,6 @@ class PengembalianController extends Controller
                 }
                 //kembalikan status peminjaman master menjadi dipinjam kembali
                 $peminjaman->update(['status' => 'dipinjam']);
-
-                //log aktivitas jika metode/relasi tersedia
-                /** @var User $petugas */
-                $petugas = auth()->user();
-                $petugas->logAktivitas()?->create(['aktivitas' => "Membatalkan pengembalian ID: #{$pengembalian->id}"]);
-
                 $pengembalian->delete();
             });
             return response()->json([

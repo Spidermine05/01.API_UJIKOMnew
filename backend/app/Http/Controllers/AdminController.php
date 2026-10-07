@@ -280,6 +280,10 @@ class AdminController extends Controller
     public function destroyUser($id)
     {
         $user = User::findOrFail($id);
+        if ($user->id === auth()->id()) {
+        return redirect()->route('admin.user.index')->with('error', 'Kamu tidak bisa menghapus akunmu sendiri.');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.user.index')->with('success', 'User berhasil dihapus.');
@@ -537,7 +541,7 @@ class AdminController extends Controller
     }
         // Proses pengembalian oleh admin (sama seperti alur petugas)
    public function prosesPengembalian(Request $request, $peminjamanId)
-{
+    {
     $request->validate([
         'kondisi_kembali' => 'required|string',
         'denda' => 'nullable|integer|min:0',

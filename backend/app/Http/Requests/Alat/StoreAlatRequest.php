@@ -21,7 +21,7 @@ class StoreAlatRequest extends FormRequest
             Rule::exists('kategori', 'id')
             ],
             'nama_alat' => ['required','string', 'max:255'],
-            'stok' => ['required','integer','min:0'],
+            'stok' => ['required','integer','min:0','max:499'],
             'status_kondisi' => ['required','string','max:255'],
             'deskripsi' => ['nullable','string'],
             'gambar' => ['nullable','image','mimes:jpeg,png,jpg','max:2048'] //maksimal 2mb
@@ -33,6 +33,7 @@ class StoreAlatRequest extends FormRequest
         return [
             'kategori_id.exists' => 'Kategori yang dipilih tidak valid atau tidak terdaftar.',
             'stok.min' => 'Stok tidak boleh kurang dari 0',
+            'stok.max' => 'Stok tidak boleh lebih dari 100.000',
             'gambar.max' => 'Ukuran gambar maksimal adalah 2MB',
             'gambar.image' => 'File yang diunggah harus berupa gambar.'
         ];

@@ -11,12 +11,10 @@ class LogAktivitasController extends Controller
 {
     public function index(): JsonResponse
     {
-        $logs = LogAktivitas::with('user')->latest()->get();
+        $logs = LogAktivitas::with('user')->latest()->paginate(15);
 
-        return response()->json([
-            'message' => 'Seluruh catatan log aktivitas berhasil diambil.',
-            'total_data' => $logs->count(),
-            'data' => LogAktivitasResource::collection($logs)
-        ]);
+        return LogAktivitasResource::collection($logs)
+            ->additional(['message' => 'Seluruh catatan log aktivitas berhasil diambil.'])
+            ->response();
     }
 }

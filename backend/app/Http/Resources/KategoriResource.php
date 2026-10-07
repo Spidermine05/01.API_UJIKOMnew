@@ -12,7 +12,7 @@ class KategoriResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name_kategori' => $this->nama_kategori,
+            'nama_kategori' => $this->nama_kategori,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }

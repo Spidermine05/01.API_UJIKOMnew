@@ -33,7 +33,8 @@ class UpdateAlatRequest extends FormRequest
             'stok' => [
                 'required',
                 'integer',
-                'min:0'
+                'min:0',
+                'max:499'
             ],
 
             'status_kondisi' => [

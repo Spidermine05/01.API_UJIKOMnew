@@ -23,21 +23,24 @@ class PeminjamanController extends Controller
         if ($user->role === 'peminjam') {
             $query->where('user_id', $user->id);
         }
-        $peminjaman = $query->latest()->get();
+        $peminjaman = $query->latest()->paginate(15);
 
-        return response()->json([
-            'message' => 'Daftar Peminjam berhasil diambil.',
-            'data' => PeminjamanResource::collection($peminjaman)
-        ]);
+        return PeminjamanResource::collection($peminjaman)
+            ->additional(['message' => 'Daftar Peminjam berhasil diambil.'])
+            ->response();
     }
 
     public function store(StorePeminjamanRequest $request): JsonResponse
     {
+        if (auth()->user()->role === 'petugas') {
+            return response()->json(['message' => 'Akses ditolak.'], 403);
+        }
         try {
             $peminjaman = DB::transaction(function () use ($request) {
                 $user = auth()->user();
+                $userId = $user->role === 'admin' ? ($request->user_id ?? $user->id) : $user->id;
                 $peminjaman = Peminjaman::create([
-                    'user_id' => $user->id,
+                    'user_id'=> $userId,
                     'tgl_pinjam' => now()->toDateString(),
                     'tgl_kembali_plan' => $request->tgl_kembali_plan,
                     'status' => 'diajukan',
@@ -88,14 +91,14 @@ class PeminjamanController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role === 'peminjam' && $peminjaman->user_id !== $user->id) {
+        if ($user->role !== 'admin' && $peminjaman->user_id !== $user->id) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
         if ($peminjaman->status !== 'diajukan') {
             return response()->json([
                 'message' => "Peminjaman tidak dapat diubah karena status saat ini: {$peminjaman->status}."
-            ], 400);
+            ], 409);
         }
 
         try {
@@ -134,11 +137,11 @@ class PeminjamanController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role === 'peminjam' && $peminjaman->user_id !== $user->id) {
+        if ($user->role !== 'admin' && $peminjaman->user_id !== $user->id) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
         if ($peminjaman->status !== 'diajukan') {
-            return response()->json(['message' => 'Peminjaman tidak dapat dibatalkan.'], 400);
+            return response()->json(['message' => 'Peminjaman tidak dapat dibatalkan.'], 409);
         }
 
         DB::transaction(function () use ($peminjaman) {
@@ -160,7 +163,7 @@ class PeminjamanController extends Controller
                 $peminjaman = Peminjaman::lockForUpdate()->findOrFail($peminjaman->id);
 
                 if ($peminjaman->status !== 'diajukan') {
-                    throw new Exception("Persetujuan gagal. Status saat ini: {$peminjaman->status}.");
+                    throw new Exception("Persetujuan gagal. Status saat ini: {$peminjaman->status}.", 409);
                 }
 
                 $peminjaman->update(['status' => 'dipinjam']);
@@ -186,8 +189,61 @@ class PeminjamanController extends Controller
                 'data' => new PeminjamanResource($peminjaman->load(['user', 'detailPinjam.alat']))
             ]);
         } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode() === 409 ? 409 : 422);
+        }
+    }
+
+        public function reject(Peminjaman $peminjaman): JsonResponse
+    {
+        try {
+            DB::transaction(function () use ($peminjaman) {
+                $peminjaman = Peminjaman::lockForUpdate()->findOrFail($peminjaman->id);
+
+                if ($peminjaman->status !== 'diajukan') {
+                    throw new Exception("Penolakan gagal. Status saat ini: {$peminjaman->status}.", 409);
+                }
+
+                $peminjaman->detailPinjam()->delete();
+                $peminjaman->delete();
+            });
+
+            return response()->json(['message' => 'Pengajuan peminjaman berhasil ditolak.']);
+        } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
+    }
+        public function ajukanKembali(Peminjaman $peminjaman): JsonResponse
+    {
+        if ($peminjaman->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Akses ditolak.'], 403);
+        }
+        if ($peminjaman->status !== 'dipinjam') {
+            return response()->json(['message' => 'Pengajuan pengembalian hanya bisa dilakukan untuk alat yang sedang dipinjam.'], 409);
+        }
+        if ($peminjaman->tgl_pengajuan_kembali) {
+            return response()->json(['message' => 'Pengembalian sudah diajukan, menunggu verifikasi petugas.'], 409);
+        }
+
+        $peminjaman->update(['tgl_pengajuan_kembali' => now()]);
+
+        return response()->json([
+            'message' => 'Pengembalian berhasil diajukan. Silakan serahkan alat ke petugas untuk diverifikasi.',
+            'data' => new PeminjamanResource($peminjaman->load(['user', 'detailPinjam.alat'])),
+        ]);
+    }
+
+    public function batalAjukanKembali(Peminjaman $peminjaman): JsonResponse
+    {
+        if ($peminjaman->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Akses ditolak.'], 403);
+        }
+        if ($peminjaman->status !== 'dipinjam' || !$peminjaman->tgl_pengajuan_kembali) {
+            return response()->json(['message' => 'Tidak ada pengajuan pengembalian yang bisa dibatalkan.'], 409);
+        }
+
+        $peminjaman->update(['tgl_pengajuan_kembali' => null]);
+
+        return response()->json(['message' => 'Pengajuan pengembalian dibatalkan.']);
     }
 
     public function riwayat(): JsonResponse

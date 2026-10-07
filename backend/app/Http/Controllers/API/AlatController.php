@@ -17,12 +17,11 @@ class AlatController extends Controller
     {
         // Mengambil data alat beserta kategori
         // untuk mencegah N+1 query
-        $alat = Alat::with('kategori')->latest()->get();
+        $alat = Alat::with('kategori')->latest()->paginate(15);
 
-        return response()->json([
-            'message' => 'Daftar alat berhasil diambil',
-            'data' => AlatResource::collection($alat)
-        ]);
+        return AlatResource::collection($alat)
+            ->additional(['message' => 'Daftar alat berhasil diambil'])
+            ->response();
     }
 
     public function store(StoreAlatRequest $request): JsonResponse

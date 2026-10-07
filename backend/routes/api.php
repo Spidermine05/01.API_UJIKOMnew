@@ -16,8 +16,8 @@ use App\Http\Controllers\API\LaporanController;
 // Tidak membutuhkan token
 // ==========================================
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
 
 // ==========================================
@@ -32,6 +32,30 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::put('/me', [AuthController::class, 'updateProfile']);
+    Route::put('/me/password', [AuthController::class, 'updatePassword']);
+
+    // Katalog: semua role yang login
+    Route::get('/katalog', [AlatController::class, 'katalog']);
+    // Detail, ubah, batalkan pengajuan (cek kepemilikan di controller)
+    Route::get('/peminjaman/{peminjaman}', [PeminjamanController::class, 'show']);
+    Route::put('/peminjaman/{peminjaman}', [PeminjamanController::class, 'update']);
+    Route::delete('/peminjaman/{peminjaman}', [PeminjamanController::class, 'destroy']);
+    Route::post('/peminjaman', [PeminjamanController::class, 'store']);
+
+    // Admin + Petugas
+    Route::middleware('role.staff')->group(function () {
+        Route::post('/peminjaman/{peminjaman}/approve', [PeminjamanController::class, 'approve']);
+        Route::post('/peminjaman/{peminjaman}/reject', [PeminjamanController::class, 'reject']);
+        Route::get('/laporan-peminjaman', [LaporanController::class, 'index']);
+        Route::post('/pengembalian', [PengembalianController::class, 'store']);
+        Route::get('/peminjaman', [PeminjamanController::class, 'index']);
+    
+        Route::get('/pengembalian', [PengembalianController::class, 'index']);
+        Route::get('/pengembalian/{pengembalian}', [PengembalianController::class, 'show']);
+        Route::get('/laporan-peminjaman/export', [LaporanController::class, 'export']);
+    });
 
 
     // ==========================================
@@ -48,24 +72,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // CRUD Alat
         Route::apiResource('alat', AlatController::class);
-        // katalog
-         Route::get('/katalog', [AlatController::class, 'katalog']);
         // Peminjaman
-        Route::get('/peminjaman', [PeminjamanController::class, 'index']);
-        Route::get('/peminjaman/{peminjaman}', [PeminjamanController::class, 'show']);
-        Route::post('/peminjaman/{peminjaman}/approve', [PeminjamanController::class, 'approve']);
-        Route::put('/peminjaman/{peminjaman}', [PeminjamanController::class, 'update']);
-        Route::delete('/peminjaman/{peminjaman}', [PeminjamanController::class, 'destroy']);
+        
         //Pengembalian
-        Route::get('/pengembalian', [PengembalianController::class, 'index']);
-        Route::get('/pengembalian/{pengembalian}', [PengembalianController::class, 'show']);
         Route::put('/pengembalian/{pengembalian}', [PengembalianController::class, 'update']);
         Route::delete('/pengembalian/{pengembalian}', [PengembalianController::class, 'destroy']);
         //Log aktivitas observer
         Route::get('/log-aktivitas', [LogAktivitasController::class, 'index']);
-        //Laporan
-        Route::get('/laporan-peminjaman', [LaporanController::class, 'index']);
-
     });
 
 
@@ -74,12 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ==========================================
 
     Route::middleware('role.petugas')->group(function () {
-    Route::post('/peminjaman/{peminjaman}/approve', [PeminjamanController::class, 'approve']);
     //pengembalian
-    Route::post('/pengembalian', [PengembalianController::class, 'store']);
-    //Laporan
-    Route::get('/laporan-peminjaman', [LaporanController::class, 'index']);
-
     });
 
 
@@ -90,9 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role.peminjam')->group(function () {
 
         // Katalog alat
-        Route::get('/katalog', [AlatController::class, 'katalog']);
-        Route::post('/peminjaman', [PeminjamanController::class, 'store']);
         Route::get('/riwayat-pinjam', [PeminjamanController::class, 'riwayat']);
+        Route::post('/peminjaman/{peminjaman}/ajukan-kembali', [PeminjamanController::class, 'ajukanKembali']);
+        Route::delete('/peminjaman/{peminjaman}/ajukan-kembali', [PeminjamanController::class, 'batalAjukanKembali']);
 
     });
 
