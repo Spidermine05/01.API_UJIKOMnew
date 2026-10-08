@@ -40,7 +40,7 @@
 
         <div class="mb-6">
             <label class="block text-gray-700 text-sm font-semibold mb-2">No. HP</label>
-            <input type="text" name="no_hp" value="{{ old('no_hp', $user->no_hp) }}"
+            <input type="tel" pattern="[0-9]*" name="no_hp" value="{{ old('no_hp', $user->no_hp) }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ouline-none focus:ring-2 focus:ring-blue-500">
                 @error('no_hp') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
         </div>

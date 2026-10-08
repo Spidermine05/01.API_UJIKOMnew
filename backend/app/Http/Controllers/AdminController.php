@@ -284,6 +284,14 @@ class AdminController extends Controller
         return redirect()->route('admin.user.index')->with('error', 'Kamu tidak bisa menghapus akunmu sendiri.');
         }
 
+        $masihPinjam = $user->peminjaman()
+        ->whereIn('status', ['dipinjam', 'telat'])
+        ->exists();
+
+        if ($masihPinjam) {
+            return redirect()->route('admin.user.index')->with('error', 'User tidak bisa dihapus karena masih memiliki alat yang sedang dipinjam.');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.user.index')->with('success', 'User berhasil dihapus.');

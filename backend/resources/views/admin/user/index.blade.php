@@ -103,7 +103,7 @@
                                             class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition"> Edit </a>
 
                                         {{-- Tombol Hapus --}}
-                                        @if($user->id !== auth()->id())   {{-- <-- tambah ini --}}
+                                        @if($user->id !== auth()->id() && !$user->peminjaman()->whereIn('status', ['dipinjam', 'telat'])->exists())
                                             <form action="{{ route('admin.user.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?')">
                                                 @csrf
                                                 @method('DELETE')
