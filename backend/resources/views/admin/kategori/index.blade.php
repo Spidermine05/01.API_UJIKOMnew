@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Kelola kategori - Panel Admin')
-@section('header-tile','Manajemen Kategori Alat')
+@section('header-title','Manajemen Kategori Alat')
 
 @section('content')
 {{-- Notifikasi --}}
