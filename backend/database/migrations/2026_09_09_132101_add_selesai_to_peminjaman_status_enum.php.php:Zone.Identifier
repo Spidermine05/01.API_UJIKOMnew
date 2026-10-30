@@ -1,0 +1,27 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=C:\Users\B-05\Desktop\Rafik Muhammad Yasir-20261020T113515Z-1-001\Rafik Muhammad Yasir\01.API_UJIKOMnew-main.zip
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        DB::statement("ALTER TABLE peminjaman MODIFY COLUMN status ENUM('diajukan','dipinjam','dikembalikan','telat','selesai') NOT NULL DEFAULT 'diajukan'");
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        DB::statement("ALTER TABLE peminjaman MODIFY COLUMN status ENUM('diajukan','dipinjam','dikembalikan','telat') NOT NULL DEFAULT 'diajukan'");
+    }
+};
