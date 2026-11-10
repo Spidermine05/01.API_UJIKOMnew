@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Peminjaman;
 use App\Models\Pengembalian;
 use App\Models\Alat;
+use App\Notifications\PeminjamanDitolakNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -129,15 +130,24 @@ class PetugasController extends Controller
     public function tolakPeminjaman($id)
     {
     try {
-        $peminjaman = Peminjaman::findOrFail($id);
+        $peminjaman = Peminjaman::with(['user', 'detailPinjam.alat'])->findOrFail($id);
 
-        // pastikan status masih diajukan
-        if ($peminjaman->status == 'diajukan') {
-            $peminjaman->delete();
-            return redirect()->back()->with('success', 'Pengajuan peminjaman berhasil ditolak');
+        // Hanya pengajuan yang masih menunggu persetujuan yang dapat ditolak.
+        if ($peminjaman->status !== 'diajukan') {
+            return redirect()->back()->with('error', 'Status peminjaman sudah berubah');
         }
 
-        return redirect()->back()->with('error', 'Status peminjaman sudah berubah');
+        // Simpan nama alat sebelum data peminjaman beserta detailnya dihapus.
+        $namaAlat = $peminjaman->detailPinjam
+            ->map(fn ($detail) => $detail->alat->nama_alat ?? null)
+            ->filter()
+            ->implode(', ');
+
+        // Notifikasi disimpan terpisah sehingga tetap ada setelah peminjaman dihapus.
+        $peminjaman->user->notify(new PeminjamanDitolakNotification(null, $namaAlat));
+
+        $peminjaman->delete();
+        return redirect()->back()->with('success', 'Pengajuan ditolak. Notifikasi telah dikirim kepada peminjam.');
     } catch (\Exception $e) {
     return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
  

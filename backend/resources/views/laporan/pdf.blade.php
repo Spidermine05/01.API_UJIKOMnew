@@ -92,6 +92,12 @@
             font-weight: bold;
             color: #374151;
         }
+        /* Warna status (dompdf: pakai CSS sederhana) */
+        .badge-diajukan     { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .badge-dipinjam     { background-color: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+        .badge-dikembalikan { background-color: #ede9fe; color: #5b21b6; border-color: #8b5cf6; }
+        .badge-selesai      { background-color: #dcfce7; color: #166534; border-color: #22c55e; }
+        .badge-telat        { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
         .muted {
             color: #6b7280;
             font-size: 9px;
@@ -182,7 +188,7 @@
                     </td>
                     <td>{{ $item->tgl_pinjam?->translatedFormat('d M Y') }}</td>
                     <td>{{ $item->tgl_kembali_plan?->translatedFormat('d M Y') }}</td>
-                    <td><span class="badge">{{ ucfirst($item->status) }}</span></td>
+                    <td><span class="badge badge-{{ $item->status }}">{{ ucfirst($item->status) }}</span></td>
                     <td>
                         {{ $item->pengembalian?->tgl_kembali?->translatedFormat('d M Y') ?? '-' }}
                         @if($item->pengembalian)

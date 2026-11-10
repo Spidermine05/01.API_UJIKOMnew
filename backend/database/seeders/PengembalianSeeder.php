@@ -16,21 +16,21 @@ class PengembalianSeeder extends Seeder
             [
                 'peminjaman_id' => 1,
                 'tgl_kembali' => '2026-06-04',
-                'kondisi_kembali' => 'Lengkap dan berfungsi Baik',
+                'kondisi_kembali' => 'Baik',
                 'denda' => 0,
                 'petugas_id' => 2, //Sekulic (Petugas)
             ],
             [
                 'peminjaman_id' => 2,
                 'tgl_kembali' => '2026-06-05',
-                'kondisi_kembali' => 'Lengkap dan berfungsi Baik',
+                'kondisi_kembali' => 'Baik',
                 'denda' => 0,
                 'petugas_id' => 2, //Sekulic (Petugas)
             ],
             [
                 'peminjaman_id' => 3,
                 'tgl_kembali' => '2026-06-09', //telat 3 hari dari tanggal 6
-                'kondisi_kembali' => 'Lengkap, kasing sedikit tergores',
+                'kondisi_kembali' => 'Rusak Ringan',
                 'denda' => 30000, //asumsi denda perhari 10k
                 'petugas_id' => 2, //Sekulic (Petugas)
 

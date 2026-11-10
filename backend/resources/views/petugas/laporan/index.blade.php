@@ -32,7 +32,8 @@
                     <option value="">-- Semua --</option>
                     <option value="diajukan" {{ $status == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
                     <option value="dipinjam" {{ $status == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                    <option value="selesai" {{ $status == 'selesai' ? 'selected' : '' }} color="green">Selesai</option>
+                    <option value="dikembalikan" {{ $status == 'dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
+                    <option value="selesai" {{ $status == 'selesai' ? 'selected' : '' }}>Selesai</option>
                     <option value="telat" {{ $status == 'telat' ? 'selected' : '' }}>Telat</option>
                 </select>
             </div>
@@ -92,8 +93,16 @@
                             <td class="py-3 px-4 border-b">{{ $item->tgl_kembali_plan?->translatedFormat('d M Y') }}</td>
                             <td class="py-3 px-4 border-b">
                                 @php
-                                    $warnaStatus = match(seta)
-                                <span class="text-xs font-semibold px-2.5 py-1 rounded bg-gray-100 text-gray-700">
+                                    $warnaStatus = match($item->status) {
+                                        'diajukan'     => 'bg-yellow-100 text-yellow-800 border border-yellow-300',
+                                        'dipinjam'     => 'bg-blue-100 text-blue-800 border border-blue-300',
+                                        'dikembalikan' => 'bg-purple-100 text-purple-800 border border-purple-300',
+                                        'selesai'      => 'bg-green-100 text-green-800 border border-green-300',
+                                        'telat'        => 'bg-red-100 text-red-800 border border-red-300',
+                                        default        => 'bg-gray-100 text-gray-700 border border-gray-300',
+                                    };
+                                @endphp
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded {{ $warnaStatus }}">
                                     {{ ucfirst($item->status) }}
                                 </span>
                             </td>

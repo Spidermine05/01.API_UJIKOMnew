@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard Admin')</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
     <div class="flex h-screen overflow-hidden">
         <aside class="w-64 bg-gray-900 text-white flex flex-col hidden md:flex">
-            <div class="p-5 text-xl font-bold tracking-wider border-b border-gray-800">
-                PANEL {{ strtoupper(auth()->user()->role) }}
+            <!-- Logo -->
+            <div class="p-5 border-b border-gray-800 flex items-center justify-center">
+            <img src="{{ asset('images/logo.png') }}"
+                alt="Logo Website"
+                class="h-16 w-auto object-contain">
             </div>
             <nav class="flex-1 p-4 space-y-2">
                 {{-- MENU KHUSUS ADMIN --}}

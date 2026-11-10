@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Panel Peminjam - Sistem Peminjaman Alat')</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 font-sans antialiased min-h-screen">
@@ -12,7 +13,15 @@
         <div class="max-w-6xl mx-auto px-4">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-8">
-                    <span class="text-white font-bold text-lg tracking-wide">Peminjaman Alat</span>
+                    <!-- Logo -->
+                    <a href="{{ route('peminjam.katalog') }}" class="flex items-center gap-3">
+                    <img src="{{ asset('images/logo.png') }}"
+                        alt="Logo Website"
+                        class="h-12 w-auto object-contain">
+                    <span class="text-white font-bold text-lg tracking-wide">
+                        Peminjaman Alat
+                    </span>
+                    </a>
 
                     <div class="hidden md:flex items-center gap-1">
                         <a href="{{ route('peminjam.katalog') }}"

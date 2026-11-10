@@ -17,13 +17,13 @@ class PeminjamanSeeder extends Seeder
                 'user_id' => 3, //menalo(peminjam)
                 'tgl_pinjam' => '2026-06-01',
                 'tgl_kembali_plan' => '2026-06-04',
-                'status' => 'dikembalikan',
+                'status' => 'selesai',
             ],
             [
                 'user_id' => 4, //berguinho(peminjam)
                 'tgl_pinjam' => '2026-06-02',
                 'tgl_kembali_plan' => '2026-06-05',
-                'status' => 'dikembalikan',
+                'status' => 'selesai',
             ],
             [
                 'user_id' => 5, //peralta(peminjam)

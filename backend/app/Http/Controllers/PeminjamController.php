@@ -72,7 +72,12 @@ class PeminjamController extends Controller
             ->latest()
             ->get();
 
-        return view('peminjam.riwayat', compact('peminjamans'));
+        $notifikasiDitolak = auth()->user()->notifications()
+            ->where('type', \App\Notifications\PeminjamanDitolakNotification::class)
+            ->latest()
+            ->get();
+
+        return view('peminjam.riwayat', compact('peminjamans', 'notifikasiDitolak'));
     }
 
     // Peminjam melaporkan bahwa alat sudah/akan dikembalikan (menunggu verifikasi petugas)

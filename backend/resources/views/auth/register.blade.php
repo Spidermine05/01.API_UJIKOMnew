@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Sistem Peminjaman Alat</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
     <div class="bg-white p-8 rounded-lg shadow-md w-96">
-    <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">Register Peminjam</h3>
+    <div class="flex flex-col items-center mb-6">
+    <img src="{{ asset('images/logo.png') }}"
+         alt="Logo Website"
+         class="h-24 w-auto object-contain mb-3">
+    <h3 class="text-2xl font-bold text-center text-gray-800">
+        Registrasi Sistem
+    </h3>
+</div>
     {{-- // Alert Error Validasi --}}
         @if($errors->any())
             <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
